@@ -495,7 +495,17 @@ def main() -> int:
         root.update_idletasks()
         sizes[scale] = int(root.geometry().split("x")[0])
 
-    checks.append(("字号越大窗口越宽", sizes[0.85] < sizes[1.0] < sizes[1.6]))
+    checks.append((
+        # 窗口宽度跟着字号走。但小屏 / 高 DPI 下会被屏幕宽度钳制（apply_geometry 里
+        # 取 min(1160*scale, screen*0.94)），那时三档会落在同一个值上 —— 这是设计如此，
+        # 不是 bug。所以：要么严格递增，要么单调不减且确实撞到了钳制线。
+        "字号越大窗口越宽（或已被屏幕钳制）",
+        sizes[0.85] < sizes[1.0] < sizes[1.6]
+        or (
+            sizes[0.85] <= sizes[1.0] <= sizes[1.6]
+            and max(sizes.values()) >= int(root.winfo_screenwidth() * 0.93)
+        ),
+    ))
     checks.append(("窗口不超过屏幕宽度", max(sizes.values()) <= root.winfo_screenwidth()))
     checks.append((
         "最小尺寸也没超屏",

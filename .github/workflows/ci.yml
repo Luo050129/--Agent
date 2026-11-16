@@ -48,12 +48,14 @@ jobs:
           python3 -m miniagent.offline 2>&1 | tee _ci/offline.log
 
       # 25 个套件：内核 / 熔断 / 沙箱 / 存档 / 搜索 / 文档 / 技能 / 插件 / MCP / GUI …
+      # 给 xvfb 一块够大的虚拟屏：默认 1280x1024 会把窗口宽度钳到同一个值，
+      # 让「字号越大窗口越宽」这类度量断言在小屏上失去意义
       - name: Unit tests
         run: |
           mkdir -p _ci
           fail=0
           for f in tests/test_*.py; do
-            if xvfb-run -a python3 "$f" > "_ci/$(basename "$f" .py).log" 2>&1; then
+            if xvfb-run -a -s "-screen 0 1920x1200x24" python3 "$f" > "_ci/$(basename "$f" .py).log" 2>&1; then
               echo "PASS $f"
             else
               echo "FAIL $f"
