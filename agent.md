@@ -67,7 +67,7 @@ README 顶部那张图是图形界面的真实截图，不是设计稿：
 ```bash
 python gui.py          # 打开窗口
 # 输一条会产生工具调用的任务，等它答完，用系统截图工具截窗口：
-#   Win + Shift + S  框选窗口 → 存成 docs_gui_preview.png
+#   Win + Shift + S  框选窗口 → 存成 docs/images/gui-preview.png
 ```
 
 改界面后重截一次，别让图比代码旧。

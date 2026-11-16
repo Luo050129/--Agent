@@ -8,7 +8,7 @@
 有**图形界面**（tkinter 桌面窗口）和 CLI 两种用法，共用一个内核。
 
 <p align="center">
-  <img alt="墟 的图形界面" src="docs_gui_preview.png" width="900">
+  <img alt="墟 的图形界面" src="docs/images/gui-preview.png" width="900">
 </p>
 
 <p align="center">
@@ -62,7 +62,7 @@ python -m miniagent.offline
 cp .env.example .env      # 填入 DEEPSEEK_API_KEY
 
 # 3. 跑起来
-python gui.py                                       # 图形界面
+python gui.py                                       # 图形界面（解释器要带 tkinter，见下方说明）
 python agent.py                                     # 交互模式
 python agent.py "统计这个仓库有多少行 Python"          # 一次性任务
 ```
@@ -118,6 +118,10 @@ python gui.py
 ```
 
 左侧：会话列表、搜索、设置、MCP 面板；底部：安全模式开关、模型切换、工作目录。不记命令也能用。
+
+> 报 `No module named 'tkinter'` 说明这个解释器没编 tkinter（某些精简发行版和工具自带解释器会这样）。
+> 换一个带 tkinter 的解释器即可，例如 `C:\Python314\python.exe gui.py`；Windows 上直接双击
+> `启动GUI.vbs` 会自动挑一个能用的。
 
 **交互模式**
 
@@ -181,29 +185,44 @@ python agent.py --base-url https://my-endpoint/v1 -m my-model "..."
 ## 📁 项目结构
 
 ```
-miniagent/
-├── core/           内核：循环、熔断、上下文、会话、存档、搜索、提示词、脱敏
-│   ├── loop.py         ReAct + Plan 双模式、验证自检、降级分流
-│   ├── guard.py        六类熔断 + 限流 + 停止码
-│   ├── context.py      预算压缩、工具结果折叠、运行记录
-│   ├── session.py      单口写入 + 插话队列 + 状态观察者
-│   └── search.py       会话内检索 + 跨会话检索
-├── tools/          工具：文件、命令、代码沙箱、文档解析、网络
-│   ├── sandbox.py      三层进程约束
-│   └── validate.py     参数运行时校验
-├── model/          模型层：客户端、注册表、4 种协议适配
-├── mcp/            MCP 客户端与管理器（自己实现的协议）
-├── skills/         技能发现与安装（skills/*.md）
-├── plugins/        插件加载（Python 模块）
-└── ui/             图形界面：窗口、对话框、搜索、设置、主题、控件
+miniagent/            主实现（Python 0.2.0，零第三方依赖）
+├── core/             内核
+│   ├── loop.py           ReAct + Plan 双模式、验证自检、降级分流
+│   ├── guard.py          六类熔断 + 限流 + 停止码
+│   ├── context.py        预算压缩、工具结果折叠、运行记录
+│   ├── session.py        单口写入 + 插话队列 + 状态观察者
+│   ├── persistence.py    会话存档、恢复、中断标记
+│   ├── prompt.py         提示词装配、版本与灰度分桶
+│   ├── search.py         会话内检索 + 跨会话检索
+│   └── redact.py         落盘前脱敏
+├── tools/            工具：文件、命令、沙箱、文档解析、网络
+│   ├── sandbox.py        三层进程约束
+│   └── validate.py       参数运行时校验
+├── model/            模型层：客户端、注册表、4 种协议适配
+├── mcp/              MCP 客户端与管理器（自己实现的协议）
+├── skills/           技能发现与安装
+├── plugins/          插件加载
+├── ui/               图形界面：窗口、对话框、搜索、设置、主题、控件
+└── offline.py        离线自测器（110 项，不调模型）
 
 agent.py            CLI 入口
 gui.py              GUI 入口
-offline.py          离线自测器（110 项，不调模型）
-tests/              25 个测试套件
-prompts/            提示词模板 + 版本索引（带 sha256）+ CHANGELOG
-examples/           插件示例
+rules.md            运行时规则（每轮注入系统提示词，所以要精简）
+agent.md            开发约定（同样注入，写给它自己看的）
 manifest.json       元数据与 SLA（熔断上限的来源）
+
+prompts/            提示词模板 + 版本索引（带 sha256）+ CHANGELOG
+skills/             示例技能（*.md）
+examples/           插件示例
+assets/             程序用图：头像、侧栏品牌图、窗口图标
+docs/               设计文档与规范
+├── images/           文档配图
+├── system-analysis.md      系统分析（边界、反馈回路、已知缺口）
+├── agent-blueprint.md      架构蓝图与阈值依据
+├── agent-spec-compliance.md 七大开发规范合规评审
+├── providers.md            供应商与协议说明
+└── doc-style-guide.md      文档写作与格式规范
+tests/              25 个测试套件
 ```
 
 ## 🧱 技术栈

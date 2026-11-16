@@ -1,8 +1,7 @@
 # Mini Agent 系统分析
 
-> **归档说明**：本文档描述的是已移除的 Python 实现（v0.2.0），保留作为设计与踩坑记录。
-> 现行实现是同架构的 TypeScript 版（[`ts-agent/`](../../ts-agent)），模块名与文件路径需按
-> 「Python → TypeScript 对照表」换算后再看。
+> 本文描述的是现行实现（`miniagent/`，Python 0.2.0）。附录里的行数为实测值，
+> 改动代码后如果差异较大，顺手更新一下。
 
 用系统论描述，mini_agent 是：**以用户的自然语言需求（可附带文档）为输入，以大模型为决策组件，以工具为执行机构，以本机文件与进程为作用对象，通过带边界与熔断的反馈回路不断修正行为，并在无法收敛时主动交付"卡在哪"的单机人机协同系统。**
 
@@ -179,21 +178,28 @@ mini_agent 的定位不是"无人值守的自动化平台"，而是**个人桌�
 
 | 文件 | 行数 | 职责 |
 | --- | --- | --- |
-| `ui/window.py` | 772 | 主界面：侧栏、对话、输入卡、状态栏 |
-| `tools/documents.py` | 435 | docx / xlsx / pdf（含 ToUnicode）/ 图片元信息 |
-| `plugins/manager.py` | 335 | 插件安装、启停、加载 |
-| `ui/dialogs.py` | 290 | 插件管理窗口 |
-| `core/loop.py` | 249 | 内核循环（ReAct + 边界 + 熔断 + 自评） |
-| `model/client.py` | 215 | 流式客户端，超时/重试/停滞检测 |
-| `core/guard.py` | 204 | 熔断与限流 |
-| `core/context.py` | 204 | token 估算、裁剪、摘要、记录 |
-| `core/rules.py` | 186 | 规则边界与权限边界 |
-| `ui/widgets.py` | 185 | 圆角按钮、开关、侧栏条目 |
-| `ui/console.py` | 168 | 命令行界面 |
-| `core/safety.py` | 119 | 输入筛查与审计 |
-| `skills/manager.py` | 112 | 技能发现与解析 |
-| `core/completion.py` | 73 | 完成度快判与出口自评 |
-| `model/registry.py` | 208 | 供应商目录（48 个模型 / 37 家供应商 / 4 种协议） |
+| `ui/window.py` | 1375 | 主界面：侧栏、对话、输入卡、状态栏 |
+| `ui/widgets.py` | 755 | 圆角按钮、开关、侧栏条目 |
 | `model/protocols/` | 725 | 四套原生协议适配器（openai / anthropic / gemini / responses） |
-| `model/client.py` | 216 | 传输：请求、重试、超时、拼流（不认识任何供应商） |
-| `model/wire.py` | 78 | 协议无关的统一事件与请求结构 |
+| `core/loop.py` | 640 | 内核循环（ReAct / Plan + 边界 + 熔断 + 自评） |
+| `tools/documents.py` | 436 | docx / xlsx / pdf / 图片元信息 |
+| `mcp/manager.py` | 431 | MCP 连接与工具接入 |
+| `ui/dialogs.py` | 372 | 插件管理窗口 |
+| `tools/sandbox.py` | 358 | 三层进程约束 |
+| `core/guard.py` | 299 | 六类熔断与限流 |
+| `core/rules.py` | 283 | 规则边界与权限边界 |
+| `plugins/manager.py` | 273 | 插件安装、启停、加载 |
+| `model/registry.py` | 250 | 供应商目录 |
+| `core/context.py` | 248 | token 估算、裁剪、摘要、运行记录 |
+| `skills/manager.py` | 244 | 技能发现与安装 |
+| `ui/console.py` | 238 | 命令行界面 |
+| `core/persistence.py` | 237 | 会话存档：写入、恢复、中断标记 |
+| `model/client.py` | 235 | 流式客户端：请求、重试、超时、拼流 |
+| `core/search.py` | 197 | 会话内检索与跨会话检索 |
+| `core/session.py` | 132 | 会话状态与单口写入 |
+| `core/safety.py` | 119 | 输入筛查与审计 |
+| `tools/validate.py` | 112 | 参数运行时校验 |
+| `core/prompt.py` | 107 | 提示词装配、版本与灰度 |
+| `core/completion.py` | 89 | 完成度快判与出口自评 |
+| `model/wire.py` | 83 | 协议无关的统一事件与请求结构 |
+| `core/redact.py` | 67 | 落盘前脱敏 |
