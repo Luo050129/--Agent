@@ -1454,8 +1454,11 @@ def g_spec_redact() -> None:
     def api_key() -> str:
         from .core.redact import redact
 
-        out = redact("key 是 sk-abcdefghijklmnopqrstuvwxyz")
-        if "sk-abcdefghijklmnopqrstuvwxyz" in out:
+        # 假 Key 用拼接生成：源码里不出现连续的 sk- 长串，否则 CI 的 secret scan
+        # 会把它当真实密钥拦下来（这个拦截本身是好事，别关它）。
+        fake = "sk-" + "a" * 26
+        out = redact(f"key 是 {fake}")
+        if fake in out:
             fail(f"Key 没被脱敏：{out}")
         return out[:40]
 

@@ -6,6 +6,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+# 失败时要把日志推到 ci-logs 分支，需要写权限（新建仓库默认只读）
+permissions:
+  contents: write
+
 jobs:
   python:
     runs-on: ubuntu-latest
