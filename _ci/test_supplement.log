@@ -1,0 +1,29 @@
+[supplement] 开始
+  PASS  命中相关会话
+  PASS  用户原话打分高于助手
+  PASS  多关键词需全部命中
+  PASS  无关词不命中
+  PASS  空关键词返回空
+  PASS  片段截断
+  PASS  只读工具失败重试一次
+  PASS  写类工具不重试
+  PASS  工具级超时生效
+  PASS  超时文案带真实秒数
+  PASS  参数校验失败不重试
+  PASS  无灰度时用默认版本
+  PASS  同会话分桶稳定
+  PASS  分桶确实分流两版
+  PASS  没种子不灰度
+  PASS  强制版本优先
+  PASS  lenient 交付但标注未核实
+  PASS  strict 直接收手不返工
+  PASS  normal 会返工（结果里不含未核实）
+  PASS  状态快照写进会话档
+  PASS  快照字段齐全
+  PASS  未收尾的档标记中断
+  PASS  收尾的档不误报中断
+  PASS  系统提示词带版本水印
+  PASS  --safe 开确认
+  PASS  --yes 跳过确认
+  PASS  都不给默认不确认
+[supplement] 全部通过
