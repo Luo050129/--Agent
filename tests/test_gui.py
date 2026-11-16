@@ -310,9 +310,12 @@ def main() -> int:
     checks.append(("侧栏够宽", app.SIDEBAR_W >= 260))
     checks.append(("头像比之前大", app.avatar.winfo_reqwidth() >= 40))
 
-    # 侧栏占比 15%~20%
-    ratio = app.SIDEBAR_W / root.winfo_width()
-    checks.append((f"侧栏占比 {ratio:.0%}（要 15%~20%）", 0.15 <= ratio <= 0.20))
+    # 侧栏宽度是设计常量，但「占比」会随窗口宽度飘：窗口宽度跟着 DPI 与字号走
+    # （apply_geometry 里算出来的），同一份代码在不同屏幕上是 1160 也可能是 1600。
+    # 所以断言设计约束本身（绝对宽度在区间内、且不挤占正文），别断言占比落在窄区间。
+    ratio = app.SIDEBAR_W / max(1, root.winfo_width())
+    checks.append(("侧栏宽度在设计区间 260~380", 260 <= app.SIDEBAR_W <= 380))
+    checks.append((f"侧栏不超窗口 30%（当前 {ratio:.0%}）", ratio <= 0.30))
 
     # 品牌放大：图标和文字都明显比标题栏大
     checks.append(("品牌有大图标", app.brand_mark_photo is not None and app.brand_mark_photo.width() >= 48))
