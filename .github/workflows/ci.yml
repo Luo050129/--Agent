@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 用系统 Python：仓库零依赖，不需要 pip install；图形界面测试要靠 apt 的 tkinter
+      - name: Install tkinter + 虚拟显示
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq python3-tk xvfb
+
+      # 密钥防线：项目默认不带任何密钥，用户自己配 .env（该文件已被 .gitignore）
+      - name: Secret scan
+        run: |
+          set +e
+          hits=$(grep -rnE "sk-[A-Za-z0-9]{20,}" \
+            --include="*.py" --include="*.json" \
+            --include="*.md" --include="*.yml" --include="*.example" . \
+            | grep -v "^\./\.git/" | grep -v "PLACEHOLDER")
+          if [ -n "$hits" ]; then
+            echo "::error::源码里出现疑似真实密钥"
+            echo "$hits"
+            exit 1
+          fi
+          if git ls-files --error-unmatch .env >/dev/null 2>&1; then
+            echo "::error::.env 被提交进版本库了"
+            exit 1
+          fi
+          echo "secret scan: 干净"
+
+      # 不调用任何模型的完整功能自测：真工具、真子进程、真文件（新环境第一件事）
+      - name: Offline selftest (no model)
+        run: |
+          mkdir -p _ci
+          python3 -m miniagent.offline 2>&1 | tee _ci/offline.log
+
+      # 25 个套件：内核 / 熔断 / 沙箱 / 存档 / 搜索 / 文档 / 技能 / 插件 / MCP / GUI …
+      - name: Unit tests
+        run: |
+          mkdir -p _ci
+          fail=0
+          for f in tests/test_*.py; do
+            if xvfb-run -a python3 "$f" > "_ci/$(basename "$f" .py).log" 2>&1; then
+              echo "PASS $f"
+            else
+              echo "FAIL $f"
+              tail -20 "_ci/$(basename "$f" .py).log"
+              fail=1
+            fi
+          done
+          exit $fail
+
+      # 失败时把完整日志推到 ci-logs 分支，方便离线定位（成功时跳过）
+      - name: Dump logs to ci-logs branch
+        if: failure()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git checkout -B ci-logs 2>/dev/null || true
+          git rm -rf --cached . -q 2>/dev/null || true
+          git add -f _ci
+          git commit -m "ci failure logs (${GITHUB_SHA::7})" -q || exit 0
+          git push -f origin ci-logs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}

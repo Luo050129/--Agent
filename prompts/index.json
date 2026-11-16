@@ -1,0 +1,11 @@
+{
+  "default": "py-v1",
+  "canary": null,
+  "versions": {
+    "py-v1": {
+      "file": "python.system.v1.md",
+      "sha256": "b56da293a498bbfd62ca52934f7323658a60aee43cdc68b6ed22f6b966805740",
+      "note": "Python 版首次外置：内容与 v0.2.0 内置提示词等价，OS 改为占位符"
+    }
+  }
+}
